@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SubCategory</title>
+    <link rel="stylesheet"
+          href="{{url_for('static', filename='css/bootstrap.min.css')}}"/>
+
+    <link rel="stylesheet"
+          href="{{url_for('static', filename='css/styles.css')}}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="application/javascript"
+            src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="user-content">
+                <span class="image"><img src="{{user_details['picture']}}"
+                                         class="img-circle"></span><span
+                    class="name">{{user_details['username']}}</span>
+                <a href="{{url_for('gdisconnect')}}"><span class="session">logout</span></a>
+                <hr>
+            </div>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="main-image">
+                <img src="https://www.itchotels.in/content/dam/projects/hotelswebsite/itc-hotels/luxury-collection/destination/chennai/itc-grand-chola/Website/headmast/19%20Madras%20Pavilion_new.jpg.transform/transform-width-1280/image.jpeg">
+            </div>
+            <div class="overlay">
+                <h1></h1>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12"><a href="{{url_for('newCategory')}}">Add New</a>
+        </div>
+        {% for i in category_list %}
+        <div class="col-md-4 col-sm-6">
+            <div class="card-category">
+                <a href="{{url_for('subCategory', cat_id = i.id)}}">{{ i.name
+                    }}</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not logged_in %}
+    hey
+    <!--<img src = "{{user_details['email']}}" width="100px" height="100px"><br>-->
+    {% endif %}
+
+</div>
+</body>
+</html>

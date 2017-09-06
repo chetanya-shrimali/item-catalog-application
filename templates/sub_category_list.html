@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SubCategory</title>
+    <link rel="stylesheet"
+          href="{{url_for('static', filename='css/bootstrap.min.css')}}"/>
+
+    <link rel="stylesheet"
+          href="{{url_for('static', filename='css/styles.css')}}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="application/javascript"
+            src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="user-content">
+                <span class="image"><img src="{{user_details['picture']}}"
+                                         class="img-circle"></span><span
+                    class="name">{{user_details['username']}}</span>
+                <a href="{{url_for('gdisconnect')}}"><span class="session">logout</span></a>
+                <hr>
+            </div>
+        </div>
+
+    </div>
+    <div class="row">
+
+        <div class="col-md-12">
+            <div class="main-image">
+                <img src="https://www.itchotels.in/content/dam/projects/hotelswebsite/itc-hotels/luxury-collection/destination/chennai/itc-grand-chola/Website/headmast/19%20Madras%20Pavilion_new.jpg.transform/transform-width-1280/image.jpeg">
+            </div>
+            <div class="overlay">
+                <h1>{{category.name}}</h1>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12"><a
+                href="{{url_for('newSubCategory', cat_id = category.id)}}">Add
+            New</a></div>
+        {% for list in subCategory_list %}
+        <div class="col-md-4 col-sm-6">
+            <div class="card">
+                <div class="card-header">{{ list.name}}</div>
+                <div class="card-content">
+                    <ul class="card-content-list">
+                        <li><p>{{list.price}}</p></li>
+                        <li><p>{{list.course}}</p></li>
+                        <li><p>{{list.description}}</p></li>
+                    </ul>
+                </div>
+
+                <div class="card-footer">
+                    {% if logged_in %}
+                    <a class="edit"
+                       href="{{url_for('editSubCategory', cat_id=category.id, sub_id=list.id )}}">Edit</a>
+                    <a class="delete"
+                       href="{{url_for('deleteSubCategory', cat_id=category.id, sub_id=list.id )}}">Delete</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+</body>
+</html>

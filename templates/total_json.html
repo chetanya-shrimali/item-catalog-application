@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>total json</title>
+</head>
+<body>
+{% for result in result_t %}
+{{jsonify([i.serialize for i in result)}}
+{% endfor %}
+</body>
+</html>
