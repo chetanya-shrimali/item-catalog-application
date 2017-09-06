@@ -1,34 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>SubCategory</title>
-    <link rel="stylesheet"
-          href="{{url_for('static', filename='css/bootstrap.min.css')}}"/>
-
-    <link rel="stylesheet"
-          href="{{url_for('static', filename='css/styles.css')}}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script type="application/javascript"
-            src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
-</head>
-<body>
+{% extends 'main.html' %}
+{% block title %}
+Category New
+{% endblock %}
+{% block head %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
             <div class="user-content">
-                <span class="image"><img src="{{user_details['picture']}}"
+                {% if login_session['username'] != null %}
+                <span class="image"><img src="{{login_session['picture']}}"
                                          class="img-circle"></span><span
-                    class="name">{{user_details['username']}}</span>
+                    class="name">{{login_session['username']}}</span>
                 <a href="{{url_for('gdisconnect')}}"><span class="session">logout</span></a>
+                {% else %}
+                <a href="{{url_for('showLogin')}}"><span
+                        class="session">login</span></a>
+                {% endif %}
                 <hr>
             </div>
         </div>
-
     </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
     <div class="row">
 
         <div class="col-md-12">
@@ -59,11 +54,13 @@
                 </div>
 
                 <div class="card-footer">
-                    {% if logged_in %}
+                    {% if 'username' in login_session %}
+                    {% if login_session['user_id'] == list.user_id %}
                     <a class="edit"
                        href="{{url_for('editSubCategory', cat_id=category.id, sub_id=list.id )}}">Edit</a>
                     <a class="delete"
                        href="{{url_for('deleteSubCategory', cat_id=category.id, sub_id=list.id )}}">Delete</a>
+                    {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -72,5 +69,4 @@
     </div>
 
 </div>
-</body>
-</html>
+{% endblock %}

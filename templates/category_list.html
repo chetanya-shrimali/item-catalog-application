@@ -1,34 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>SubCategory</title>
-    <link rel="stylesheet"
-          href="{{url_for('static', filename='css/bootstrap.min.css')}}"/>
-
-    <link rel="stylesheet"
-          href="{{url_for('static', filename='css/styles.css')}}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script type="application/javascript"
-            src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
-</head>
-<body>
+{% extends 'main.html' %}
+{% block title %}
+Category List
+{% endblock %}
+{% block head %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
             <div class="user-content">
-                <span class="image"><img src="{{user_details['picture']}}"
+                {% if login_session['username'] != null %}
+                <span class="image"><img src="{{login_session['picture']}}"
                                          class="img-circle"></span><span
-                    class="name">{{user_details['username']}}</span>
+                    class="name">{{login_session['username']}}</span>
                 <a href="{{url_for('gdisconnect')}}"><span class="session">logout</span></a>
+                {% else %}
+                <a href="{{url_for('showLogin')}}"><span
+                        class="session">login</span></a>
+                {% endif %}
                 <hr>
             </div>
         </div>
-
     </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
             <div class="main-image">
@@ -49,17 +44,13 @@
         <div class="col-md-4 col-sm-6">
             <div class="card-category">
                 <a href="{{url_for('subCategory', cat_id = i.id)}}">{{ i.name
-                    }}</a>
+                    }}</a><br><br>
+                {% if login_session['user_id'] == i.user_id %}
+                <a href="{{url_for('deleteCategory', cat_id = i.id)}}">delete</a>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
     </div>
-
-    {% if not logged_in %}
-    hey
-    <!--<img src = "{{user_details['email']}}" width="100px" height="100px"><br>-->
-    {% endif %}
-
 </div>
-</body>
-</html>
+{% endblock %}

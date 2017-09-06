@@ -1,13 +1,19 @@
+#!/usr/bin/env python3
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, INTEGER
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 
 Base = declarative_base()
-engine = create_engine('sqlite:///restaurantmenu.db')
-Base.metadata.create_all(engine)
+
+
+class User(Base):
+    __tablename__ = 'user'
+    name = Column(String(20), nullable=False)
+    id = Column(Integer, primary_key=True)
+    email = Column(String(40), nullable=False)
 
 
 class Restaurant(Base):
@@ -15,6 +21,8 @@ class Restaurant(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
 
     @property
     def serialize(self):
@@ -34,6 +42,8 @@ class MenuItem(Base):
     course = Column(String(250))
     restaurant_id = Column(Integer, ForeignKey('restaurant.id'))
     restaurant = relationship(Restaurant)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
 
     @property
     def serialize(self):
@@ -44,3 +54,7 @@ class MenuItem(Base):
             'price': self.price,
             'description': self.description,
         }
+
+
+engine = create_engine('sqlite:///catalog.db')
+Base.metadata.create_all(engine)
