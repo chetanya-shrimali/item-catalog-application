@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Flask imports
+from functools import wraps
 
 from flask import Flask, render_template, request, redirect, url_for, flash, \
     jsonify
@@ -17,14 +18,14 @@ from oauth2client.client import FlowExchangeError
 import httplib2
 import json
 
-app = Flask(__name__)
-
 # similar to urllib2 but with few improvements
 import requests
 # Database imports
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Restaurant, MenuItem, User
+
+app = Flask(__name__)
 
 engine = create_engine('sqlite:///catalog.db')
 Base.metadata.bind = engine
@@ -34,6 +35,17 @@ session = DBSession()
 Client_ID = json.loads(open('client_secrets.json', 'r').read())['web'][
     'client_id']
 APPLICATION_NAME = "Category Application"
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'email' in login_session:
+            return f(*args, **kwargs)
+        else:
+            return redirect(url_for('showLogin'))
+
+    return decorated_function
 
 
 # function to create user
@@ -231,46 +243,38 @@ def gdisconnect():
 
 # api end points
 @app.route('/categories/subcategories/json')
+@login_required
 def subcategories_to_json():
-    if 'username' in login_session:
-        result_i = session.query(MenuItem).all()
-        output = ""
-        return jsonify(results=[result.serialize for result in result_i])
-    else:
-        return redirect(url_for('showLogin'))
+    result_i = session.query(MenuItem).all()
+    output = ""
+    return jsonify(results=[result.serialize for result in result_i])
 
 
 # api end points
 @app.route('/categories/json')
+@login_required
 def categories_to_json():
-    if 'username' in login_session:
-        results = session.query(Restaurant).all()
-        return jsonify(results=[result.serialize for result in results])
-    else:
-        return redirect(url_for('showLogin'))
+    results = session.query(Restaurant).all()
+    return jsonify(results=[result.serialize for result in results])
 
 
 # api end points
 @app.route('/categories/<int:cat_id>/subcategories/json')
+@login_required
 def particular_subcategories_to_json(cat_id):
-    if 'username' in login_session:
-        results = session.query(MenuItem).filter_by(restaurant_id=cat_id)
-        output = ""
-        return jsonify(results=[result.serialize for result in results])
-    else:
-        return redirect(url_for('showLogin'))
+    results = session.query(MenuItem).filter_by(restaurant_id=cat_id)
+    output = ""
+    return jsonify(results=[result.serialize for result in results])
 
 
 # api end points
 @app.route('/categories/<int:cat_id>/subcategories/<int:sub_id>/json')
+@login_required
 def particular_subcategory_to_json(cat_id, sub_id):
-    if 'username' in login_session:
-        results = session.query(MenuItem).filter_by(restaurant_id=cat_id,
-                                                    id=sub_id)
-        output = ""
-        return jsonify(results=[result.serialize for result in results])
-    else:
-        return redirect(url_for('showLogin'))
+    results = session.query(MenuItem).filter_by(restaurant_id=cat_id,
+                                                id=sub_id)
+    output = ""
+    return jsonify(results=[result.serialize for result in results])
 
 
 # categories
@@ -286,47 +290,47 @@ def category():
 
 # add new category
 @app.route('/category/new', methods=['POST', 'GET'])
+@login_required
 def newCategory():
-    print(login_session)
-    if 'username' in login_session:
-        if request.method == 'POST':
-            new_category = Restaurant(name=request.form['name'],
-                                      user_id=login_session['user_id'])
-            session.add(new_category)
-            session.commit()
-            return redirect(url_for('category'))
-        else:
-            return render_template('category_new.html',
-                                   login_session=login_session)
+    if request.method == 'POST':
+        new_category = Restaurant(name=request.form['name'],
+                                  user_id=login_session['user_id'])
+        session.add(new_category)
+        session.commit()
+        return redirect(url_for('category'))
     else:
-        return render_template('login.html')
-
-        # to be implemented
-
-        # @app.route('/category/<int:cat_id>/edit', methods=['POST', 'GET'])
-        # def editCategory(cat_id):
-        #     return "edit category %s" % cat_id
-        #
-        #
-        # @app.route('/category/<int:cat_id>/delete', methods=['POST', 'GET'])
-        # def deleteCategory(cat_id):
-        #     return "delete category %s" % cat_id
+        return render_template('category_new.html',
+                               login_session=login_session)
 
 
-        # subcategory
-        # Sub Category
+# to be implemented
+
+# @app.route('/category/<int:cat_id>/edit', methods=['POST', 'GET'])
+# def editCategory(cat_id):
+#     return "edit category %s" % cat_id
+#
+#
+# @app.route('/category/<int:cat_id>/delete', methods=['POST', 'GET'])
+# def deleteCategory(cat_id):
+#     return "delete category %s" % cat_id
+
+
+# subcategory
+# Sub Category
 
 
 # delete existing category
+
 @app.route('/category/<int:cat_id>/delete')
+@login_required
 def deleteCategory(cat_id):
-    if 'username' in login_session:
-        delete = session.query(Restaurant).filter_by(id=cat_id).first()
+    delete = session.query(Restaurant).filter_by(id=cat_id).first()
+    if login_session['user_id'] == delete.user_id:
         session.delete(delete)
         session.commit()
         return " " + delete.name + " deleted!!<br> <a href = ''>here</a>"
     else:
-        return render_template('login.html', login_session=login_session)
+        return "You are not authorized to do so!!"
 
 
 # list subcategory
@@ -346,33 +350,34 @@ def subCategory(cat_id):
 # add new subcategory
 @app.route('/category/<int:cat_id>/subcategory/new',
            methods=['GET', 'POST'])
+@login_required
 def newSubCategory(cat_id):
-    if 'username' in login_session:
-        if request.method == 'POST':
-            item = MenuItem(name=request.form['name'],
-                            course=request.form['course'],
-                            price=request.form['price'],
-                            description=request.form['description'],
-                            restaurant_id=cat_id,
-                            user_id=login_session['user_id'])
-            session.add(item)
-            session.commit()
-            return redirect(url_for('subCategory', cat_id=cat_id))
-        else:
-            return render_template('sub_category_new.html', cat_id=cat_id,
-                                   login_session=login_session)
+    if request.method == 'POST':
+        item = MenuItem(name=request.form['name'],
+                        course=request.form['course'],
+                        price=request.form['price'],
+                        description=request.form['description'],
+                        restaurant_id=cat_id,
+                        user_id=login_session['user_id'])
+        session.add(item)
+        session.commit()
+        return redirect(url_for('subCategory', cat_id=cat_id))
     else:
-        return redirect(url_for('showLogin'))
+        return render_template('sub_category_new.html', cat_id=cat_id,
+                               login_session=login_session)
 
 
 # edit subcategory
 @app.route('/category/<int:cat_id>/subcategory/<int:sub_id>/edit',
            methods=['POST', 'GET'])
+@login_required
 def editSubCategory(cat_id, sub_id):
-    if 'username' in login_session:
+    item = session.query(MenuItem).filter_by(restaurant_id=cat_id,
+                                             id=sub_id).first()
+    # authorization check
+    if login_session['user_id'] == item.user_id:
         if request.method == 'POST':
-            item = session.query(MenuItem).filter_by(restaurant_id=cat_id,
-                                                     id=sub_id).first()
+
             item.name = request.form['name']
             item.description = request.form['description']
             item.course = request.form['course']
@@ -388,17 +393,20 @@ def editSubCategory(cat_id, sub_id):
                                    sub_id=sub_id, items=item,
                                    login_session=login_session)
     else:
-        return redirect(url_for('showLogin'))
+        return "You are not authorized to edit this menu!!"
 
 
-# delete subcategory
 @app.route('/category/<int:cat_id>/subcategory/<int:sub_id>/delete',
            methods=['POST', 'GET'])
+@login_required
 def deleteSubCategory(cat_id, sub_id):
-    if 'username' in login_session:
+    item = session.query(MenuItem).filter_by(restaurant_id=cat_id,
+                                             id=sub_id).first()
+    # authorization check
+    if login_session['user_id'] == item.user_id:
         if request.method == 'POST':
-            item = session.query(MenuItem).filter_by(restaurant_id=cat_id,
-                                                     id=sub_id).first()
+            # item = session.query(MenuItem).filter_by(restaurant_id=cat_id,
+            #    id=sub_id).first()
             session.delete(item)
             session.commit()
             return redirect(
@@ -407,11 +415,12 @@ def deleteSubCategory(cat_id, sub_id):
         else:
             item = session.query(MenuItem).filter_by(id=sub_id,
                                                      restaurant_id=cat_id).first()
-            return render_template('sub_category_delete.html', cat_id=cat_id,
+            return render_template('sub_category_delete.html',
+                                   cat_id=cat_id,
                                    sub_id=sub_id, items=item,
                                    login_session=login_session)
     else:
-        return redirect(url_for('showLogin'))
+        return "Your are not authorized to delete this menu!!"
 
 
 # details to be implemented
