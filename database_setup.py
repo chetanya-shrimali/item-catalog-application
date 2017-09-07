@@ -14,6 +14,8 @@ class User(Base):
     name = Column(String(20), nullable=False)
     id = Column(Integer, primary_key=True)
     email = Column(String(40), nullable=False)
+    restaurant = relationship("Restaurant", cascade="all, delete-orphan")
+    items = relationship("MenuItem", cascade="all, delete-orphan")
 
 
 class Restaurant(Base):
@@ -23,6 +25,7 @@ class Restaurant(Base):
     name = Column(String(250), nullable=False)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
+    items = relationship("MenuItem", cascade="all, delete-orphan")
 
     @property
     def serialize(self):

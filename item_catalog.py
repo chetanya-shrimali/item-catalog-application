@@ -8,17 +8,16 @@ from flask import Flask, render_template, request, redirect, url_for, flash, \
 from flask import session as login_session
 import random
 import string
-
-app = Flask(__name__)
-
+# converts the info to real response to be send off to client
+from flask import make_response
 # authorization imports
 # this import contains clientsecrets clientid and other parameters
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 import httplib2
 import json
-# converts the info to real response to be send off to client
-from flask import make_response
+
+app = Flask(__name__)
 
 # similar to urllib2 but with few improvements
 import requests
@@ -370,44 +369,52 @@ def newSubCategory(cat_id):
 @app.route('/category/<int:cat_id>/subcategory/<int:sub_id>/edit',
            methods=['POST', 'GET'])
 def editSubCategory(cat_id, sub_id):
-    if request.method == 'POST':
-        item = session.query(MenuItem).filter_by(restaurant_id=cat_id,
-                                                 id=sub_id).first()
-        item.name = request.form['name']
-        item.description = request.form['description']
-        item.course = request.form['course']
-        item.price = request.form['price']
-        session.commit()
-        return redirect(
-            url_for('subCategory', cat_id=cat_id, login_session=login_session))
+    if 'username' in login_session:
+        if request.method == 'POST':
+            item = session.query(MenuItem).filter_by(restaurant_id=cat_id,
+                                                     id=sub_id).first()
+            item.name = request.form['name']
+            item.description = request.form['description']
+            item.course = request.form['course']
+            item.price = request.form['price']
+            session.commit()
+            return redirect(
+                url_for('subCategory', cat_id=cat_id,
+                        login_session=login_session))
+        else:
+            item = session.query(MenuItem).filter_by(id=sub_id,
+                                                     restaurant_id=cat_id).first()
+            return render_template('sub_category_edit.html', cat_id=cat_id,
+                                   sub_id=sub_id, items=item,
+                                   login_session=login_session)
     else:
-        item = session.query(MenuItem).filter_by(id=sub_id,
-                                                 restaurant_id=cat_id).first()
-        return render_template('sub_category_edit.html', cat_id=cat_id,
-                               sub_id=sub_id, items=item,
-                               login_session=login_session)
+        return redirect(url_for('showLogin'))
 
 
 # delete subcategory
 @app.route('/category/<int:cat_id>/subcategory/<int:sub_id>/delete',
            methods=['POST', 'GET'])
 def deleteSubCategory(cat_id, sub_id):
-    if request.method == 'POST':
-        item = session.query(MenuItem).filter_by(restaurant_id=cat_id,
-                                                 id=sub_id).first()
-        session.delete(item)
-        session.commit()
-        return redirect(
-            url_for('subCategory', cat_id=cat_id, login_session=login_session))
+    if 'username' in login_session:
+        if request.method == 'POST':
+            item = session.query(MenuItem).filter_by(restaurant_id=cat_id,
+                                                     id=sub_id).first()
+            session.delete(item)
+            session.commit()
+            return redirect(
+                url_for('subCategory', cat_id=cat_id,
+                        login_session=login_session))
+        else:
+            item = session.query(MenuItem).filter_by(id=sub_id,
+                                                     restaurant_id=cat_id).first()
+            return render_template('sub_category_delete.html', cat_id=cat_id,
+                                   sub_id=sub_id, items=item,
+                                   login_session=login_session)
     else:
-        item = session.query(MenuItem).filter_by(id=sub_id,
-                                                 restaurant_id=cat_id).first()
-        return render_template('sub_category_delete.html', cat_id=cat_id,
-                               sub_id=sub_id, items=item,
-                               login_session=login_session)
+        return redirect(url_for('showLogin'))
 
 
-# # details to be implemented
+# details to be implemented
 # @app.route('/category/<int:cat_id>/subcategory/<int:sub_id>/details/')
 # def details(cat_id, sub_id):
 #     return "/category/%s/subcategory/%s/details/" % (cat_id, sub_id)
