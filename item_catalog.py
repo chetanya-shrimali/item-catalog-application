@@ -2,6 +2,7 @@
 # Flask imports
 from functools import wraps
 
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash, \
     jsonify
 
@@ -26,13 +27,13 @@ from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Restaurant, MenuItem, User
 
 app = Flask(__name__)
-
-engine = create_engine('postgresql://catalog:password@localhost/catalog')
+# 'postgresql://catalog:password@localhost/catalog'
+engine = create_engine('sqlite:///catalog.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-Client_ID = json.loads(open('client_secrets.json', 'r').read())['web'][
+Client_ID = json.loads(open(os.path.join('client_secrets.json'), 'r').read())['web'][
     'client_id']
 APPLICATION_NAME = "Category Application"
 
